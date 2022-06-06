@@ -20,7 +20,7 @@ def cut_recordings(dataset, rec_name, onset, offset):
       if dataset[i].startswith('textgrid') or dataset[i].startswith('cha') or dataset[i].startswith('eaf'):
         if '/' in rec:
             rec_name = rec.split('/')[1].split('_')
-            change_directory(f'{output}/{name_corpus}/recordings/raw/{rec_f[0]}')
+            change_directory(f'{output}/{name_corpus}/recordings/raw/{rec.split('/')[0]}')
         else:
             rec_name = rec.split('_')
             change_directory(f'{output}/{name_corpus}/recordings/raw/')
