@@ -112,11 +112,7 @@ def compile_annotations(source):
                 os.rename(destination_cha + '/' + file, destination_cha + '/' + f'{name_corpus}_{dir}_{file}')
 
 def to_list(dict):
-  to_list = []
-  for k,v in dict.items():
-    for it in v:
-      to_list.append(f'{k}_{it}')
-  return to_list
+  return [f'{k}_{it}' for it in v for k, v in dict.items()]
 
 def check_rec(list_rec, list_children, list_dates):
   copy_list = list_rec
@@ -130,10 +126,7 @@ def check_rec(list_rec, list_children, list_dates):
   return copy_list, copy_children, copy_dates
 
 def rename(list_rec):
-  copy_list = []
-  for rec in list_rec:
-    copy_list.append(f'{name_corpus}_{rec}')
-  return copy_list
+  return [f'{name_corpus}_{rec}' for rec in list_rec]
 
 if __name__ == "__main__":
     import argparse
