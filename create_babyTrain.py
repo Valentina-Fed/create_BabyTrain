@@ -65,17 +65,17 @@ def move_files(source, target, files, substring):
     else:
         alldirs = os.listdir(source)
         for f in alldirs:
-            shutil.move(source + f, target + f)
+            shutil.move(f'{source}{f}', f'{target}{f}')
 
 def remove_files (source, dir, files):
     if dir:
         for dirname in files:
             try:
-                shutil.rmtree(source + f'/{dirname}')
+                shutil.rmtree(f'{source}{dirname}')
             except OSError as e:
-                print("Error: %s : %s" % (source + f'/{dirname}', e.strerror))
+                print("Error: %s : %s" % (f'{source}{dirname}', e.strerror))
     else:
-        os.remove(source + files)
+        os.remove(f'{source}{files}')
 
 def unzip(zipurl, path_corpus):
   with urlopen(zipurl) as zipresp:
@@ -86,9 +86,9 @@ def select_annotations(source):
     dirs = sorted([f for f in os.listdir(source) if isdir(join(source, f))])
     to_drop = {dir: [] for dir in dirs}
     for dir in dirs:
-        files = sorted([f for f in os.listdir(source + '/' + dir)])
+        files = sorted([f for f in os.listdir(f'{source}{dir}')])
         for file in files:
-            child = pylangacq.read_chat(source + dir + '/' + file)
+            child = pylangacq.read_chat(f'{source}{dir}{file}')
             if child.headers()[0]['Participants']['CHI']['age'] == '':
                 to_drop[f'{dir}'].append(file)
             for utt in child.utterances():
@@ -105,11 +105,11 @@ def compile_annotations(source):
     to_drop = select_annotations(source)
     dirs = sorted([f for f in os.listdir(source) if isdir(join(source, f))])
     for dir in dirs:
-        files = sorted([f for f in os.listdir(source + '/' + dir)])
+        files = sorted([f for f in os.listdir(f'{source}{dir}')])
         for file in files:
             if file not in to_drop[f'{dir}']:
-                move_file(source + '/' + dir, destination_cha, source + '/' + dir + '/' + file)
-                os.rename(destination_cha + '/' + file, destination_cha + '/' + f'{name_corpus}_{dir}_{file}')
+                move_file(f'{source}{dir}', destination_cha, f'{source}{dir}{file}')
+                os.rename(f'{destination_cha}{file}', f'{destination_cha}{name_corpus}_{dir}_{file}')
 
 def to_list(dict):
   return [f'{k}_{it}' for it in v for k, v in dict.items()]
@@ -144,30 +144,29 @@ if __name__ == "__main__":
     path_corpus = args.corpus
     url_path = args.url
     m = url_path.split('/')
-    name_corpus = m[len(m) - 1].replace('.html', '')
 
-    name_experiment = f'{name_corpus}'
-    print(f'Your corpus will be created in {path_corpus}/{name_experiment}')
+    name_experiment = m[-1].replace('.html', '')
+    print(f'Your corpus will be created in {path_corpus}{name_experiment}')
     cha_path, rec_path = retrieve_links(url_path)
 
     # Create the main folder with the name of the experiment
-    dl.create(f'{path_corpus}/{name_experiment}')
+    dl.create(f'{path_corpus}{name_experiment}')
     # Create subfolders
-    create_directory(f'{path_corpus}/{name_experiment}/', 'metadata', False)
-    create_directory(f'{path_corpus}/{name_experiment}/recordings/', 'raw', True)
-    create_directory(f'{path_corpus}/{name_experiment}/annotations/cha/', 'raw', True)
-    create_directory(f'{path_corpus}/{name_experiment}/', 'extra', False)
+    create_directory(f'{path_corpus}{name_experiment}', 'metadata', False)
+    create_directory(f'{path_corpus}{name_experiment}recordings', 'raw', True)
+    create_directory(f'{path_corpus}{name_experiment}annotations/cha/', 'raw', True)
+    create_directory(f'{path_corpus}{name_experiment}', 'extra', False)
 
     # Download files *.cha from a zipped file
-    unzip(cha_path, f'{path_corpus}/{name_experiment}/annotations/cha/raw')
+    unzip(cha_path, f'{path_corpus}{name_experiment}annotations/cha/raw')
 
     # Move metadata and other files into the folders METADATA and EXTRA
-    source = f'{path_corpus}/{name_experiment}/annotations/cha/raw/{name_corpus}/'
-    destination_metadata = f'{path_corpus}/{name_experiment}/metadata/'
-    destination_extra = f'{path_corpus}/{name_experiment}/extra/'
-    destination_cha = f'{path_corpus}/{name_experiment}/annotations/cha/raw/'
+    source = f'{path_corpus}{name_experiment}annotations/cha/raw/{name_corpus}/'
+    destination_metadata = f'{path_corpus}{name_experiment}metadata/'
+    destination_extra = f'{path_corpus}{name_experiment}extra/'
+    destination_cha = f'{path_corpus}{name_experiment}annotations/cha/raw/'
 
-    source2 = f'{path_corpus}/{name_experiment}/annotations/cha/raw/{name_corpus}'
+    source2 = f'{path_corpus}{name_experiment}annotations/cha/raw/{name_experiment}'
     move_files(source2, destination_metadata, True, 'metadata')
     move_files(source2, destination_extra, True, '.txt')
     print('The metadata files have been moved to metadata folder')
@@ -175,7 +174,7 @@ if __name__ == "__main__":
     #downloading and processing annotations
     change_directory(source)
     compile_annotations(source)
-    shutil.rmtree(f'{path_corpus}/{name_experiment}/annotations/cha/raw/{name_corpus}')
+    shutil.rmtree(f'{path_corpus}/{name_experiment}/annotations/cha/raw/{name_experiment}')
     print('The annotations have been uploaded.')
 
     change_directory(destination_cha)
@@ -207,7 +206,7 @@ if __name__ == "__main__":
     for age, date in corr_age_rec.items():
         nb_days = int(age.split(';')[0]) * 365 + int(age.split(';')[1].split('.')[0]) * 30 + int(age.split('.')[1])
         child_dob.append(str(date.pop() - datetime.timedelta(days=nb_days))[:10])
-    child_experiment = [f'{name_corpus}'] * len(child_dob)
+    child_experiment = [f'{name_experiment}'] * len(child_dob)
     dob_criterion = ['extrapolated'] * len(child_dob)
     dob_accuracy = ['week'] * len(child_dob)
     children = sorted(set(children_rec))
@@ -217,15 +216,15 @@ if __name__ == "__main__":
     for k, v in recording_name.items():
         recording_name_wav[k] = [rec.replace(', audio', '.wav') for rec in v]
         recording_name_mp3[k] = [rec.replace(', audio', '.mp3') for rec in v]
-    change_directory(f'{path_corpus}/{name_experiment}/recordings/raw/')
+    change_directory(f'{path_corpus}{name_experiment}recordings/raw/')
     missing_rec = []
     for name, value in recording_name_mp3.items():
         for rec in value:
             rec1 = rec.replace('.mp3', '.cha')
-            if os.path.exists(f'{path_corpus}/{name_experiment}/annotations/cha/raw/{name_corpus}_{name}_{rec1}'):
-                req = Request(rec_path + '/' + name + '/' + rec)
+            if os.path.exists(f'{path_corpus}{name_experiment}annotations/cha/raw/{name_experiment}_{name}_{rec1}'):
+                req = Request(f'{rec_path}{name}{rec})
                 try:
-                    urllib.request.urlretrieve(rec_path + '/' + name + '/' + rec, f'{name_corpus}_{name}_{rec}')
+                    urllib.request.urlretrieve(f'{rec_path}{name}{rec}, f'{name_experiment}_{name}_{rec}')
                 except HTTPError as e:
                     print(f'{name}_{rec} is missing')
                     missing_rec.append(f'{name}_{rec}')
@@ -233,9 +232,9 @@ if __name__ == "__main__":
         for rec in value:
             rec1 = rec.replace('.wav', '.cha')
             if f'{name_corpus}_{name}_{rec1}':
-                req = Request(rec_path + '/' + name + '/0wav/' + rec)
+                req = Request(f'{rec_path}{name}/0wav/{rec}')
                 try:
-                    urllib.request.urlretrieve(rec_path + '/' + name + '/0wav/' + rec, f'{name_corpus}_{name}_{rec}')
+                    urllib.request.urlretrieve(f'{rec_path}{name}/0wav/{rec}', f'{name_corpus}_{name}_{rec}')
                 except HTTPError as e:
                     print(f'{name}_{rec} is missing')
                     missing_rec.append(f'{name}_{rec}')
@@ -253,17 +252,15 @@ if __name__ == "__main__":
     start_time = ['00:00'] * len(children_recordings)
 
     # create .csv
-    recordings = {'experiment': rec_experiment, 'child_id': children_recordings, 'date_iso': recording_date,
+    df_recordings = pd.DataFrame.from_dict({'experiment': rec_experiment, 'child_id': children_recordings, 'date_iso': recording_date,
                   'start_time': start_time, 'recording_device_type': recording_device,
-                  'recording_filename': recording_names}
-    children = {'experiment': child_experiment, 'child_id': children, 'child_dob': child_dob,
-                'dob_criterion': dob_criterion, 'dob_accuracy': dob_accuracy}
-    df_recordings = pd.DataFrame(data=recordings)
-    df_children = pd.DataFrame(data=children)
-    df_children.to_csv(f'/{path_corpus}/{name_experiment}/metadata/children.csv', index=False)
-    df_recordings.to_csv(f'{path_corpus}/{name_experiment}/metadata/recordings.csv', index=False)
+                  'recording_filename': recording_names})
+    df_children = pd.DataFrame.from_dict({'experiment': child_experiment, 'child_id': children, 'child_dob': child_dob,
+                'dob_criterion': dob_criterion, 'dob_accuracy': dob_accuracy})
+    df_children.to_csv(f'{path_corpus}{name_experiment}metadata/children.csv', index=False)
+    df_recordings.to_csv(f'{path_corpus}{name_experiment}metadata/recordings.csv', index=False)
 
     # recordings should be put directly to 'recordings/raw' without intermediate folders
 
-    change_directory(f'{path_corpus}/{name_corpus}')
-    print(f'Your corpus {name_corpus} has been created.')
+    change_directory(f'{path_corpus}{name_experiment}')
+    print(f'Your corpus {name_experiment} has been created.')
