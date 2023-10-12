@@ -18,9 +18,9 @@ if __name__ == "__main__":
 
   for file in os.listdir(filepath):
       if file.endswith('.wav'):
-        sound = am.from_file(f'{filepath}/{file}', format='wav', frame_rate=22050)
+        sound = am.from_file(f'{filepath}{file}', format='wav', frame_rate=22050)
         sound = sound.set_frame_rate(16000)
-        sound.export(f'{output}/{file}', format='wav')
+        sound.export(f'{output}{file}', format='wav')
 
 
 
