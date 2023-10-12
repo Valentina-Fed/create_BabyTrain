@@ -20,14 +20,14 @@ def cut_recordings(dataset, rec_name, onset, offset):
       if dataset[i].startswith('textgrid') or dataset[i].startswith('cha') or dataset[i].startswith('eaf'):
         if '/' in rec:
             rec_name = rec.split('/')[1].split('_')
-            change_directory(f'{output}/{name_corpus}/recordings/raw/{rec.split('/')[0]}')
+            change_directory(f'{output}{name_corpus}recordings/raw/{rec.split('/')[0]}')
         else:
             rec_name = rec.split('_')
-            change_directory(f'{output}/{name_corpus}/recordings/raw/')
-        newAudio = AudioSegment.from_wav(f'{output}/{name_corpus}/recordings/raw/{"_".join(rec_name)}')
+            change_directory(f'{output}{name_corpus}recordings/raw/')
+        newAudio = AudioSegment.from_wav(f'{output}{name_corpus}recordings/raw/{"_".join(rec_name)}')
         newAudio = newAudio[onset[i]:offset[i]]
         name = "_".join(rec_name).replace('.wav', '')
-        newAudio.export(f'{output}/{name_corpus}/recordings/raw/{name}_{str(onset[i])}_{str(offset[i])}.wav', format="wav")
+        newAudio.export(f'{output}{name_corpus}recordings/raw/{name}_{str(onset[i])}_{str(offset[i])}.wav', format="wav")
 
 if __name__ == "__main__":
     import argparse
@@ -47,12 +47,9 @@ if __name__ == "__main__":
     path_corpus = args.corpus
     dict_children = args.dict_children
     m = path_corpus.split('/')
-    name_corpus = (m[len(m) - 1]).replace('.git', '')
-    df = pd.read_csv(f'{output}/{name_corpus}/metadata/annotations.csv')
-    rec_name = df['recording_filename']
-    onset = df['range_onset']
-    offset = df['range_offset']
-    dataset = df['set']
+    name_corpus = (m[-1]).replace('.git', '')
+    df = pd.read_csv(f'{output}{name_corpus}metadata/annotations.csv')
+    rec_name, onset, offset, dataset = df['recording_filename'], df['range_onset'], df['range_offset'], df['set']
     cut_recordings(dataset, rec_name, onset, offset)
 
 
